@@ -1,0 +1,103 @@
+/*
+ * Enhanced Bluetooth Voice-Controlled Home Automation
+ * Controls 4 devices (2 bulbs, 2 fans) via voice commands
+ * Commands format: "*command" (e.g., "*bulb1 on", "*all off")
+ */
+
+// Relay pin definitions
+#define RELAY_COUNT 4
+const int relayPins[RELAY_COUNT] = {2, 3, 7, 8}; // bulb1, bulb2, fan1, fan2
+
+// Command definitions
+const String commands[][2] = {
+  {"bulb1 on", "bulb1 off"},
+  {"bulb2 on", "bulb2 off"},
+  {"fan1 on", "fan1 off"},
+  {"fan2 on", "fan2 off"},
+  {"all on", "all off"}
+};
+
+String voiceCommand;
+
+void setup() {
+  Serial.begin(9600);
+  
+  // Initialize all relays
+  for (int i = 0; i < RELAY_COUNT; i++) {
+    pinMode(relayPins[i], OUTPUT);
+    digitalWrite(relayPins[i], HIGH); // Start with all relays OFF
+  }
+  
+  Serial.println("Voice Controlled Home Automation Ready!");
+  Serial.println("Available commands:");
+  Serial.println("*bulb1 on/off, *bulb2 on/off");
+  Serial.println("*fan1 on/off, *fan2 on/off");
+  Serial.println("*all on/off");
+}
+
+void loop() {
+  if (Serial.available()) {
+    char c = Serial.read();
+    
+    // End of command marker
+    if (c == '#') {
+      processCommand();
+      voiceCommand = ""; // Reset for next command
+    } 
+    else if (c != '\n' && c != '\r') {
+      voiceCommand += c;
+    }
+  }
+}
+
+void processCommand() {
+  Serial.print("Received: ");
+  Serial.println(voiceCommand);
+  
+  // Remove leading/trailing whitespace and make lowercase
+  voiceCommand.trim();
+  voiceCommand.toLowerCase();
+
+  // Process individual device commands
+  for (int i = 0; i < RELAY_COUNT; i++) {
+    if (voiceCommand == "*" + commands[i][0]) {
+      digitalWrite(relayPins[i], LOW);
+      Serial.println("Device ON");
+      return;
+    }
+    else if (voiceCommand == "*" + commands[i][1]) {
+      digitalWrite(relayPins[i], HIGH);
+      Serial.println("Device OFF");
+      return;
+    }
+  }
+
+  // Process global commands
+  if (voiceCommand == "*all on") {
+    allRelays(LOW);
+    Serial.println("All devices ON");
+  }
+  else if (voiceCommand == "*all off") {
+    allRelays(HIGH);
+    Serial.println("All devices OFF");
+  }
+  else {
+    Serial.println("Invalid command!");
+    printHelp();
+  }
+}
+
+void allRelays(int state) {
+  for (int i = 0; i < RELAY_COUNT; i++) {
+    digitalWrite(relayPins[i], state);
+  }
+}
+
+void printHelp() {
+  Serial.println("Valid commands:");
+  Serial.println("*bulb1 on/off");
+  Serial.println("*bulb2 on/off");
+  Serial.println("*fan1 on/off");
+  Serial.println("*fan2 on/off");
+  Serial.println("*all on/off");
+}

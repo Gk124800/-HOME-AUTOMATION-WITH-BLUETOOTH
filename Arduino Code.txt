@@ -1,0 +1,43 @@
+#include <SoftwareSerial.h>
+SoftwareSerial Bluetooth(10, 11); // RX=10, TX=11 (Avoid using 0 & 1 to prevent serial conflict)
+
+// Relay control pins
+int relay1 = 2;
+int relay2 = 3;
+int relay3 = 4;
+int relay4 = 5;
+
+void setup() {
+  Serial.begin(9600);
+  Bluetooth.begin(9600);
+  
+  pinMode(relay1, OUTPUT);
+  pinMode(relay2, OUTPUT);
+  pinMode(relay3, OUTPUT);
+  pinMode(relay4, OUTPUT);
+  
+  digitalWrite(relay1, HIGH); // Initially OFF (Relay is active LOW)
+  digitalWrite(relay2, HIGH);
+  digitalWrite(relay3, HIGH);
+  digitalWrite(relay4, HIGH);
+  
+  Serial.println("Bluetooth Home Automation Ready!");
+}
+
+void loop() {
+  if (Bluetooth.available()) {
+    char command = Bluetooth.read();
+    Serial.println(command);
+    
+    switch(command) {
+      case 'A': digitalWrite(relay1, LOW); break;  // Relay 1 ON
+      case 'a': digitalWrite(relay1, HIGH); break; // Relay 1 OFF
+      case 'B': digitalWrite(relay2, LOW); break;  // Relay 2 ON
+      case 'b': digitalWrite(relay2, HIGH); break; // Relay 2 OFF
+      case 'C': digitalWrite(relay3, LOW); break;  // Relay 3 ON
+      case 'c': digitalWrite(relay3, HIGH); break; // Relay 3 OFF
+      case 'D': digitalWrite(relay4, LOW); break;  // Relay 4 ON
+      case 'd': digitalWrite(relay4, HIGH); break; // Relay 4 OFF
+    }
+  }
+}
